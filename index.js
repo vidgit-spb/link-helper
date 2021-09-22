@@ -3,14 +3,10 @@ require("dotenv").config();
 const textHelp = require("./const");
 const I18n = require("telegraf-i18n");
 const path = require("path");
+const { exempleJson } = require("./mirrors");
 var index = 0;
 //у нас тут будет описываться доступность тех или иных зеркал
-const exempleJson = [
-  { "google.com": true },
-  { "yandex.ru": true },
-  { "youtube.com": true },
-  { "vkontake.ru": false },
-];
+
 const i18n = new I18n({
   directory: path.resolve(__dirname, "locales"),
   defaultLanguage: "rus",
@@ -26,7 +22,6 @@ const findItemToShow = (curIndex, objectToFind, ctx) => {
     if (curIndex > 0) {
       index++;
     }
-    console.log(curIndex);
     if (Object.values(currentLink)[0]) {
       return Object.keys(currentLink)[0];
     } else {
