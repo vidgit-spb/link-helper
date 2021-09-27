@@ -5,6 +5,16 @@ const I18n = require("telegraf-i18n");
 const path = require("path");
 const { exempleJson } = require("./mirrors");
 var index = 0;
+const mongoose = require("mongoose");
+const Links = require("./models/bot");
+
+ let urlConnectDb = `mongodb+srv://${process.env.USER_NAME}:${process.env.USER_PASSWORD}@vidgitcluster.yzarw.mongodb.net/${process.env.COLLECTION_NAME}` 
+
+mongoose
+  .connect(urlConnectDb, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then((result) => console.log("in bd current"))
+  .catch((err) => console.log(err));
+
 //у нас тут будет описываться доступность тех или иных зеркал
 
 const i18n = new I18n({
@@ -13,6 +23,19 @@ const i18n = new I18n({
   sessionName: "session",
   useSession: true,
 });
+
+//В этом месте я создаю инициализированные значения с link 0 , пока я придумал так что если пользователь просит следующую ссылку значит эта его не
+//Устроила , запустил 1 раз и закомментировал чтобы была понятна логика в дальнейшем
+
+// for(item of exempleJson){
+
+//   const botTest = new Links({
+//       link: Object.keys(item)[0],
+//       counter: 0,
+//     });
+
+//   botTest.save();
+// }
 
 const findItemToShow = (curIndex, objectToFind, ctx) => {
   if (curIndex >= objectToFind.length) {
@@ -37,6 +60,7 @@ bot.start((ctx) => ctx.reply());
 bot.help((ctx) => ctx.reply(textHelp.commands));
 
 bot.command("getLink", async (ctx) => {
+  index = 0;
   try {
     await ctx.replyWithHTML(
       `<b> ${findItemToShow(0, exempleJson, ctx)} </b>`,
@@ -51,6 +75,12 @@ bot.command("getLink", async (ctx) => {
 
 bot.action("btn_2", async (ctx) => {
   try {
+    let dataToUpdate = { link: Object.keys(exempleJson[index])[0] };
+    let newValue = { $inc: { counter: 1 } };
+    Links.updateOne(dataToUpdate, newValue, (err, res) => {
+      if (err) throw err;
+    });
+
     await ctx.answerCbQuery();
     await ctx.replyWithHTML(
       `<b> ${findItemToShow(index + 1, exempleJson, ctx)} </b>`,
@@ -66,7 +96,7 @@ bot.action("btn_2", async (ctx) => {
 
 bot.action("error", async (ctx) => {
   ctx.reply(ctx.i18n.t("error"));
-})
+});
 
 bot.launch();
 
