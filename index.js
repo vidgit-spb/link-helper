@@ -1,50 +1,26 @@
 const { Telegraf, Markup } = require("telegraf");
-require("dotenv").config();
 const textHelp = require("./const");
 const I18n = require("telegraf-i18n");
 const path = require("path");
+let mysql = require('mysql');
+require("dotenv").config();
 const { exempleJson } = require("./mirrors");
+const { BOT_MYSQL_HOST, BOT_MYSQL_USER, BOT_MYSQL_PASSWORD, BOT_MYSQL_DATABASE } = process.env;
+
 var index = 0;
-const mongoose = require("mongoose");
-const Links = require("./models/bot");
-var mysql = require('mysql');
-
-//  Оставил монго, может ещё пригодится
-//  let urlConnectDb = `mongodb+srv://${process.env.USER_NAME}:${process.env.USER_PASSWORD}@vidgitcluster.yzarw.mongodb.net/${process.env.COLLECTION_NAME}` 
-
-// mongoose
-//   .connect(urlConnectDb, { useNewUrlParser: true, useUnifiedTopology: true })
-//   .then((result) => console.log("in bd current"))
-//   .catch((err) => console.log(err));
- 
-var conectionToMysql = mysql.createConnection({
-    host: process.env.BOT_MYSQL_HOST,
-    user: process.env.BOT_MYSQL_USER,
-    password: process.env.BOT_MYSQL_PASSWORD,
-    database: process.env.BOT_MYSQL_DATABASE
+let conectionToMysql = mysql.createConnection({
+    host: BOT_MYSQL_HOST,
+    user: BOT_MYSQL_USER,
+    password: BOT_MYSQL_PASSWORD,
+    database: BOT_MYSQL_DATABASE
 }); 
-
-//у нас тут будет описываться доступность тех или иных зеркал
 
 const i18n = new I18n({
   directory: path.resolve(__dirname, "locales"),
-  defaultLanguage: "rus",
+  defaultLanguage: "ru",
   sessionName: "session",
   useSession: true,
 });
-
-//В этом месте я создаю инициализированные значения с link 0 , пока я придумал так что если пользователь просит следующую ссылку значит эта его не
-//Устроила , запустил 1 раз и закомментировал чтобы была понятна логика в дальнейшем
-
-// for(item of exempleJson){
-
-//   const botTest = new Links({
-//       link: Object.keys(item)[0],
-//       counter: 0,
-//     });
-
-//   botTest.save();
-// }
 
 const findItemToShow = (curIndex, objectToFind, ctx) => {
   if (curIndex >= objectToFind.length) {
@@ -84,13 +60,7 @@ bot.command("getLink", async (ctx) => {
 
 bot.action("btn_2", async (ctx) => {
   try {
-    // Вариант работы для mongodb
-    // let dataToUpdate = { link: Object.keys(exempleJson[index])[0] };
-    // let newValue = { $inc: { counter: 1 } };
-    // Links.updateOne(dataToUpdate, newValue, (err, res) => {
-    //   if (err) throw err;
-    // });
-    var sqlUpdate = `UPDATE tgBotDb.users SET count= 'count' + 1 WHERE link = ${Object.keys(exempleJson[index])[0]}`
+    let sqlUpdate = `UPDATE tgBotDb.users SET count= 'count' + 1 WHERE link = ${Object.keys(exempleJson[index])[0]}`
     conectionToMysql.query(sqlUpdate, function (err, result) {
       if (err) throw err;
       console.log(result.affectedRows + " record(s) updated");
